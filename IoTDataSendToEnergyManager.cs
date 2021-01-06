@@ -6,6 +6,7 @@ using System.Net.Http;
 using System.Collections.Generic;
 using System.Text.Json;
 using System.Threading.Tasks;
+using System.Diagnostics;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Azure.Devices.Client;
@@ -22,6 +23,10 @@ namespace Sarpsborgkommune.IoT.DataSendToEnergyManager
         public static async Task<HttpResponseMessage> Run(
             [HttpTrigger(AuthorizationLevel.Anonymous, "post")] HttpRequestMessage req, ILogger log)
         {
+            Stopwatch timerTotal = new Stopwatch();
+            Stopwatch timerSend = new Stopwatch();
+
+            timerTotal.Start();
             log.LogInformation($"IoTDataSendToExternalRecipients triggered with URI: {req.RequestUri}");
 
             string content = await req.Content.ReadAsStringAsync();
@@ -48,16 +53,20 @@ namespace Sarpsborgkommune.IoT.DataSendToEnergyManager
             log.LogInformation($"Data: {JsonSerializer.Serialize(emData.data)}");
             try
             {
+                timerSend.Start();
                 String connection = Environment.GetEnvironmentVariable("IoTHubEndpointEM");
                 DeviceClient deviceClient = DeviceClient.CreateFromConnectionString(connection, TransportType.Mqtt);
                 await deviceClient.SendEventAsync(new Message(Encoding.ASCII.GetBytes(JsonSerializer.Serialize(emData.data))));
+                timerSend.Stop();
             }
             catch
             {
                 req.CreateResponse(System.Net.HttpStatusCode.InternalServerError, "Unable to connect or send send message to external IoTHub");
                 log.LogError("Unable to connect or send message to external IoTHub.");
             }
-            log.LogInformation("Data sendt.");
+
+            timerTotal.Stop();
+            log.LogInformation($"Data sendt. Total time: {timerTotal.ElapsedMilliseconds}. Send time: {timerSend.ElapsedMilliseconds}");
             return req.CreateResponse(System.Net.HttpStatusCode.OK, "Success");
 
         }
