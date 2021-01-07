@@ -24,5 +24,6 @@ The following procedure must be used to deploy the function(s):
 
 ```bash
 # git pull https://github.com/Sarpsborg-kommune/IoTDataSendToExternalRecipients.git
-
+# cd IoTDataSendToExternalRecipients
+#  func azure functionapp publish {functioappname}
 ```

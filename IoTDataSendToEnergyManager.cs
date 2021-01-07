@@ -44,19 +44,22 @@ namespace Sarpsborgkommune.IoT.DataSendToEnergyManager
             sItem.v.temp = iotData[0].data.temp;
             sItem.v.humidity = iotData[0].data.rh;
             sItem.v.light = iotData[0].data.light;
-            sItem.v.motion = iotData[0].data.motion;
+            sItem.v.motion = Math.Min(iotData[0].data.motion / 255.0, 1.0); // Normalized
             sItem.v.co2 = iotData[0].data.co2;
-            sItem.v.bat = iotData[0].data.vdd;
+            sItem.v.bat = Math.Min(iotData[0].data.vdd / 3600.0, 1.0);      // Normalized
 
             sItemList.Add(sItem);
             emData.data.Add(iotData[0].id, sItemList);
             log.LogInformation($"Data: {JsonSerializer.Serialize(emData.data)}");
             try
             {
-                timerSend.Start();
                 String connection = Environment.GetEnvironmentVariable("IoTHubEndpointEM");
                 DeviceClient deviceClient = DeviceClient.CreateFromConnectionString(connection, TransportType.Mqtt);
-                await deviceClient.SendEventAsync(new Message(Encoding.ASCII.GetBytes(JsonSerializer.Serialize(emData.data))));
+
+                var message = new Message(Encoding.ASCII.GetBytes(JsonSerializer.Serialize(emData.data)));
+
+                timerSend.Start();
+                await deviceClient.SendEventAsync(message);
                 timerSend.Stop();
             }
             catch
