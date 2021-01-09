@@ -27,3 +27,5 @@ The following procedure must be used to deploy the function(s):
 # cd IoTDataSendToExternalRecipients
 #  func azure functionapp publish {functioappname}
 ```
+
+https://github.com/Azure/azure-functions-host/issues/5399

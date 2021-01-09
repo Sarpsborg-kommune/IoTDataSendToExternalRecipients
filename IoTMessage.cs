@@ -12,12 +12,12 @@ namespace Sarpsborgkommune.IoT.IoTMessage
 {
     public class ElsysEnvData
     {
-        public float temp { get; set; }
-        public int rh { get; set; }
-        public int light { get; set; }
-        public int motion { get; set; }
-        public int co2 { get; set; }
-        public int vdd { get; set; }
+        public float? temp { get; set; }
+        public int? rh { get; set; }
+        public int? light { get; set; }
+        public int? motion { get; set; }
+        public int? co2 { get; set; }
+        public int? vdd { get; set; }
     }
 
 

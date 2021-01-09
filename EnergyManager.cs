@@ -6,12 +6,12 @@ namespace Sarpsborgkommune.IoT.EnergyManager
 {
     public class Measurements
     {
-        public Double temp { get; set; }
-        public Double humidity { get; set; }
-        public Double co2 { get; set; }
-        public Double light { get; set; }
-        public Double motion { get; set; }
-        public Double bat { get; set; }
+        public Double? temp { get; set; }
+        public Double? humidity { get; set; }
+        public Double? co2 { get; set; }
+        public Double? light { get; set; }
+        public Double? motion { get; set; }
+        public Double? bat { get; set; }
     }
 
     public class Sensor
