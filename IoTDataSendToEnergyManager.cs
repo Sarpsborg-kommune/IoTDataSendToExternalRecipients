@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 using System.Diagnostics;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
-using Microsoft.Azure.Devices.Client;
 using Microsoft.Extensions.Logging;
 using Sarpsborgkommune.IoT.IoTMessage;
 using Sarpsborgkommune.IoT.EnergyManager;
@@ -21,7 +20,8 @@ namespace Sarpsborgkommune.IoT.DataSendToEnergyManager
     {
         [FunctionName("IoTDataSendToEnergyManager")]
         public static async Task<HttpResponseMessage> Run(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "post")] HttpRequestMessage req, ILogger log)
+            [HttpTrigger(AuthorizationLevel.Anonymous, "post")] HttpRequestMessage req,
+            [EventHub("dest", Connection = "EventHubEndpointEM")] IAsyncCollector<byte[]> outputEvents, ILogger log)
         {
             List<ElsysIoTMessage> iotData = new List<ElsysIoTMessage>();
             Stopwatch timerTotal = new Stopwatch();
@@ -96,13 +96,11 @@ namespace Sarpsborgkommune.IoT.DataSendToEnergyManager
                             // Data is discarded if send fails.
                             try
                             {
-                                String emConnection = Environment.GetEnvironmentVariable("IoTHubEndpointEM");
-                                DeviceClient devClient = DeviceClient.CreateFromConnectionString(emConnection, TransportType.Mqtt);
-
-                                var emSendDataMessage = new Message(Encoding.ASCII.GetBytes(emSendData));
+                                // var emSendDataMessage = new Message(Encoding.ASCII.GetBytes(emSendData));
 
                                 timerSend.Start();
-                                await devClient.SendEventAsync(emSendDataMessage);
+                                //await outputEvents.AddAsync(Encoding.ASCII.GetBytes(emSendData));
+                                await outputEvents.AddAsync(Encoding.ASCII.GetBytes(emSendData));
                                 timerSend.Stop();
                                 log.LogInformation($"Data sendt to EnergyManager. Send time {timerSend.ElapsedMilliseconds} ms.");
                             }
