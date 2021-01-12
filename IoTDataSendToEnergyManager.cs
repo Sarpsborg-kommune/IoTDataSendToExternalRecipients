@@ -1,5 +1,4 @@
 using System;
-using System.IO;
 using System.Text;
 using System.Net;
 using System.Net.Http;
@@ -9,10 +8,10 @@ using System.Threading.Tasks;
 using System.Diagnostics;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
+using Microsoft.Azure.EventHubs;
 using Microsoft.Extensions.Logging;
 using Sarpsborgkommune.IoT.IoTMessage;
 using Sarpsborgkommune.IoT.EnergyManager;
-
 
 namespace Sarpsborgkommune.IoT.DataSendToEnergyManager
 {
@@ -21,7 +20,7 @@ namespace Sarpsborgkommune.IoT.DataSendToEnergyManager
         [FunctionName("IoTDataSendToEnergyManager")]
         public static async Task<HttpResponseMessage> Run(
             [HttpTrigger(AuthorizationLevel.Anonymous, "post")] HttpRequestMessage req,
-            [EventHub("dest", Connection = "EventHubEndpointEM")] IAsyncCollector<byte[]> outputEvents, ILogger log)
+            [EventHub("sarpsborg-kommune", Connection = "EventHubEndpointEM")] IAsyncCollector<EventData> outputEvents, ILogger log)
         {
             List<ElsysIoTMessage> iotData = new List<ElsysIoTMessage>();
             Stopwatch timerTotal = new Stopwatch();
@@ -96,11 +95,8 @@ namespace Sarpsborgkommune.IoT.DataSendToEnergyManager
                             // Data is discarded if send fails.
                             try
                             {
-                                // var emSendDataMessage = new Message(Encoding.ASCII.GetBytes(emSendData));
-
                                 timerSend.Start();
-                                //await outputEvents.AddAsync(Encoding.ASCII.GetBytes(emSendData));
-                                await outputEvents.AddAsync(Encoding.ASCII.GetBytes(emSendData));
+                                await outputEvents.AddAsync(new EventData(Encoding.ASCII.GetBytes(emSendData)));
                                 timerSend.Stop();
                                 log.LogInformation($"Data sendt to EnergyManager. Send time {timerSend.ElapsedMilliseconds} ms.");
                             }
